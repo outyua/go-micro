@@ -39,6 +39,10 @@ import (
 
 func init() {
 	cmd.DefaultServers["grpc"] = NewServer
+
+	// Set gRPC as the default server implementation
+	server.DefaultServer = NewServer()
+	server.NewServer = NewServer
 }
 
 var (

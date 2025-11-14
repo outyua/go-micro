@@ -35,6 +35,10 @@ type grpcClient struct {
 func init() {
 	cmd.DefaultClients["grpc"] = NewClient
 
+	// Set gRPC as the default client implementation
+	client.DefaultClient = NewClient()
+	client.NewClient = NewClient
+
 	encoding.RegisterCodec(wrapCodec{jsonCodec{}})
 	encoding.RegisterCodec(wrapCodec{protoCodec{}})
 	encoding.RegisterCodec(wrapCodec{bytesCodec{}})

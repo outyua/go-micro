@@ -37,7 +37,8 @@ in the plugins repo. State and persistence becomes a core requirement beyond pro
   and server handle this by default. This includes protobuf and json by default.
 
 - **RPC Client/Server** - RPC based request/response with support for bidirectional streaming. We provide an abstraction for synchronous
-  communication. A request made to a service will be automatically resolved, load balanced, dialled and streamed.
+  communication. A request made to a service will be automatically resolved, load balanced, dialled and streamed. **gRPC is now the default
+  RPC implementation**, providing HTTP/2 based transport with multiplexing, streaming, and high performance.
 
 - **Async Messaging** - PubSub is built in as a first class citizen for asynchronous communication and event driven architectures.
   Event notifications are a core pattern in micro service development. The default messaging system is a HTTP event message broker.
@@ -106,6 +107,78 @@ curl -XPOST \
      -H 'Micro-Endpoint: Say.Hello' \
      -d '{"name": "alice"}' \
       http://localhost:8080
+```
+
+## Default RPC Implementation
+
+**Breaking Change:** Go Micro now uses **gRPC as the default RPC implementation**. This provides:
+
+- HTTP/2 transport with connection multiplexing
+- Bidirectional streaming support
+- Better performance and lower latency
+- Native protobuf support
+
+### Why gRPC?
+
+gRPC offers significant advantages over HTTP/1.1:
+- **Performance**: HTTP/2 multiplexing reduces connection overhead
+- **Streaming**: Full support for client, server, and bidirectional streaming
+- **Efficiency**: Binary protocol with protobuf serialization
+- **Industry Standard**: Wide adoption and excellent tooling
+
+### Migration Guide
+
+Existing services will automatically use gRPC when you upgrade. No code changes are required for basic usage.
+
+**For advanced configurations:**
+
+```golang
+import (
+    "go-micro.dev/v5"
+    cgrpc "go-micro.dev/v5/client/grpc"
+    sgrpc "go-micro.dev/v5/server/grpc"
+)
+
+// Configure gRPC options
+service := micro.NewService(
+    micro.Name("my.service"),
+    micro.Client(cgrpc.NewClient(
+        cgrpc.MaxRecvMsgSize(20 * 1024 * 1024), // 20MB
+        cgrpc.PoolMaxStreams(100),
+    )),
+    micro.Server(sgrpc.NewServer(
+        sgrpc.MaxMsgSize(20 * 1024 * 1024),
+        sgrpc.MaxConn(1000),
+    )),
+)
+```
+
+**To use the legacy HTTP/1.1 RPC implementation:**
+
+You can use command line flags or environment variables:
+
+```bash
+# Using command line flags
+./your-service --client=rpc --server=rpc
+
+# Using environment variables
+export MICRO_CLIENT=rpc
+export MICRO_SERVER=rpc
+./your-service
+```
+
+Or explicitly in code:
+
+```golang
+import (
+    "go-micro.dev/v5"
+    "go-micro.dev/v5/server"
+)
+
+service := micro.NewService(
+    micro.Name("my.service"),
+    micro.Server(server.NewRPCServer()),
+)
 ```
 
 ## Experimental

@@ -7,6 +7,10 @@ import (
 	"go-micro.dev/v5/client"
 	"go-micro.dev/v5/server"
 	"go-micro.dev/v5/service"
+
+	// Import gRPC to set it as the default RPC implementation
+	_ "go-micro.dev/v5/client/grpc"
+	_ "go-micro.dev/v5/server/grpc"
 )
 
 type serviceKey struct{}
